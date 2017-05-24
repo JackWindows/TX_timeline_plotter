@@ -3,7 +3,6 @@ import os, sys, re
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import FormatStrFormatter
-from interval import interval
 
 FRAME_DURATION = 920    #718us(data) + 192us(preamble)
                         #for 1000 bytes packet at 11Mbps
@@ -76,28 +75,41 @@ def draw(timelines):
     fig.savefig(SAVE_PDF_NAME, bbox_inches='tight')
     os.system('start %s' % SAVE_PDF_NAME)
 
-def redcue_data(timelines):
+def redcue_data(timelines, intersted='mid'):
     '''
         process timelines to output data that is within certain time span when
         the mid node transmits
+        return a list of timelines
     '''
     timespan = (FRAME_DURATION + 150) * 2
-    mid_idx = IDX_TO_DEVICE_NAME.index('mid')
-    valid_interval = interval()
-    for inter in timelines[mid_idx]:
-        valid_interval |= interval([inter[0] - timespan, inter[1] + timespan])
-    #at this point we get the valid_intervals, next is to filter the input data
-    ret_timelines = [[], [], []]
-    for idx in range(len(timelines)):
-        for inter in timelines[idx]:
-            if interval([inter[0], inter[1]]) in valid_interval:
-                ret_timelines[idx].append(inter)
-    return ret_timelines
+    interest_idx = IDX_TO_DEVICE_NAME.index(intersted)
+    valid_intval = []
+    for intval in timelines[interest_idx]:
+        if len(valid_intval) > 0 and \
+                valid_intval[-1][1] >= intval[0] - timespan:
+            valid_intval[-1] = (valid_intval[-1][0], intval[1] + timespan,)
+            continue
+        valid_intval.append((intval[0] - timespan, intval[1] + timespan,))
+    #at this point we get the valid intervals, next is to filter the input data
+    list_of_timelines = []
+    node_idxs = [0] * len(timelines)
+    for cur_intval in valid_intval:
+        tmp_timelines = [[], [], []]
+        for idx in range(len(timelines)):
+            for i in range(node_idxs[idx], len(timelines[idx])):
+                intval = timelines[idx][i]
+                if cur_intval[0] <= intval[0] and intval[1] <= cur_intval[1]:
+                    tmp_timelines[idx].append(intval)
+                if intval[1] > cur_intval[1]:
+                    node_idxs[idx] = i
+                    break
+        list_of_timelines.append(tmp_timelines)
+    return list_of_timelines
 
 def main():
     timelines = parse_data('data.txt')
-    timelines = redcue_data(timelines)
-    draw(timelines)
+    list_of_timelines = redcue_data(timelines)
+    draw(list_of_timelines[0])
 
 if __name__ == '__main__':
     main()

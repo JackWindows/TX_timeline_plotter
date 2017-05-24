@@ -3,6 +3,7 @@ import os, sys, re
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import FormatStrFormatter
+from interval import interval
 
 FRAME_DURATION = 920    #718us(data) + 192us(preamble)
                         #for 1000 bytes packet at 11Mbps
@@ -60,8 +61,8 @@ def draw(timelines):
         color = IDX_TO_COLOR[idx]
         y = IDX_TO_Y_AXIS[idx]
         for interval in timelines[idx]:
-            p = patches.Rectangle(
-                (interval[0] / 1000.0, y - 1), (interval[1] - interval[0]) / 1000.0, 2,
+            p = patches.Rectangle((interval[0] / 1000.0, y - 1),
+                (interval[1] - interval[0]) / 1000.0, 2,
                 facecolor=color, linewidth=0)
             ax.add_patch(p)
             max_x = max(max_x, interval[1])
@@ -75,8 +76,27 @@ def draw(timelines):
     fig.savefig(SAVE_PDF_NAME, bbox_inches='tight')
     os.system('start %s' % SAVE_PDF_NAME)
 
+def redcue_data(timelines):
+    '''
+        process timelines to output data that is within certain time span when
+        the mid node transmits
+    '''
+    timespan = (FRAME_DURATION + 150) * 2
+    mid_idx = IDX_TO_DEVICE_NAME.index('mid')
+    valid_interval = interval()
+    for inter in timelines[mid_idx]:
+        valid_interval |= interval([inter[0] - timespan, inter[1] + timespan])
+    #at this point we get the valid_intervals, next is to filter the input data
+    ret_timelines = [[], [], []]
+    for idx in range(len(timelines)):
+        for inter in timelines[idx]:
+            if interval([inter[0], inter[1]]) in valid_interval:
+                ret_timelines[idx].append(inter)
+    return ret_timelines
+
 def main():
     timelines = parse_data('data.txt')
+    timelines = redcue_data(timelines)
     draw(timelines)
 
 if __name__ == '__main__':

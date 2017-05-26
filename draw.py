@@ -142,7 +142,10 @@ def redcue_data(timelines, intersted='mid'):
         for idx in range(len(timelines)):
             for i in range(node_idxs[idx], len(timelines[idx])):
                 intval = timelines[idx][i]
-                if cur_intval[0] <= intval[0] and intval[1] <= cur_intval[1]:
+                overlap = max(min(cur_intval[1], intval[1])
+                            - max(cur_intval[0], intval[0]), 0)
+                #if TX timespan overlaps at least half with current interval
+                if overlap / float(FRAME_DURATION) >= 0.5:
                     tmp_timelines[idx].append(intval)
                 if intval[1] > cur_intval[1]:
                     node_idxs[idx] = i

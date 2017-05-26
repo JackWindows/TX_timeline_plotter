@@ -151,8 +151,11 @@ def redcue_data(timelines, intersted='mid'):
     return list_of_timelines
 
 def main():
+    interested = 'mid'
+    if len(sys.argv) > 1:
+        interested = sys.argv[1]
     timelines = parse_data('data.txt')
-    list_of_timelines = redcue_data(timelines)
+    list_of_timelines = redcue_data(timelines, interested)
     draw(list_of_timelines)
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
-#this script should be executed on windows
-import os, sys, re, math
+#!/usr/bin/python
+#this script can be executed on windows
+import os, sys, re, math, platform
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import FormatStrFormatter
@@ -55,7 +56,7 @@ def draw_ax(ax, timelines, first=True):
     ax.xaxis.grid('on')
     min_x = 999999999999    #get the smallest x axis
     max_x = 0   #get the longest x axis
-    for idx in range(len(timelines)):
+    for idx in xrange(len(timelines)):
         name = IDX_TO_DEVICE_NAME[idx]
         color = IDX_TO_COLOR[idx]
         y = IDX_TO_Y_AXIS[idx]
@@ -82,7 +83,7 @@ def draw_ax(ax, timelines, first=True):
 def get_x_axis_span(timelines, hspace=0.1):
     min_x = 999999999999
     max_x = 0
-    for idx in range(len(timelines)):
+    for idx in xrange(len(timelines)):
         if timelines[idx]:
             min_x = min(min_x, timelines[idx][0][0])
             max_x = max(max_x, timelines[idx][-1][1])
@@ -113,11 +114,12 @@ def draw(list_of_timelines):
         cumulative_length += width + hspace
     #draw each part of the figure
     draw_ax(ax[0], list_of_timelines[0], True)
-    for i in range(1, len(list_of_timelines)):
+    for i in xrange(1, len(list_of_timelines)):
         draw_ax(ax[i], list_of_timelines[i], False)
     fig.set_size_inches(total_length, 1)
     fig.savefig(SAVE_PDF_NAME, bbox_inches='tight')
-    os.system('start %s' % SAVE_PDF_NAME)
+    if platform.system() == 'Windows':
+        os.system('start %s' % SAVE_PDF_NAME)
 
 def redcue_data(timelines, intersted='mid'):
     '''
@@ -139,8 +141,8 @@ def redcue_data(timelines, intersted='mid'):
     node_idxs = [0] * len(timelines)
     for cur_intval in valid_intval:
         tmp_timelines = [[], [], []]
-        for idx in range(len(timelines)):
-            for i in range(node_idxs[idx], len(timelines[idx])):
+        for idx in xrange(len(timelines)):
+            for i in xrange(node_idxs[idx], len(timelines[idx])):
                 intval = timelines[idx][i]
                 overlap = max(min(cur_intval[1], intval[1])
                             - max(cur_intval[0], intval[0]), 0)

@@ -69,7 +69,21 @@ def draw_ax(ax, timelines, first=True):
             max_x = max(max_x, interval[1])
     xlim_min, xlim_max = get_x_axis_span(timelines)
     ax.axis([xlim_min, xlim_max, 0, 6])
-    ax.xaxis.set_ticks(range(int(math.ceil(min_x / 1000.0)), max_x // 1000, 1))
+    x_ticks_tmp = []
+    for timeline in timelines:
+        for interval in timeline:
+            x_ticks_tmp.append(interval[0] / 1000.0)
+            x_ticks_tmp.append(interval[1] / 1000.0)
+    x_ticks_tmp.sort()
+    x_ticks = [x_ticks_tmp[0]]
+    for i in xrange(1, len(x_ticks_tmp)):
+        if x_ticks_tmp[i] - x_ticks[-1] <= 0.03: #avoid too dense ticks
+            x_ticks[-1] = x_ticks_tmp[i]
+        else:
+            x_ticks.append(x_ticks_tmp[i])
+    ax.xaxis.set_ticks(x_ticks)
+    x_labels = ['%.3fms' % x for x in x_ticks]
+    ax.xaxis.set_ticklabels(x_labels, rotation=70)
     ax.spines['right'].set_visible(False)
     if first:
         ax.yaxis.set_ticks(IDX_TO_Y_AXIS)
@@ -78,7 +92,6 @@ def draw_ax(ax, timelines, first=True):
         ax.spines['left'].set_visible(False)
         ax.yaxis.set_ticks([])
     ax.tick_params(length=0)
-    ax.xaxis.set_major_formatter(FormatStrFormatter("%dms"))
 
 def get_x_axis_span(timelines, hspace=0.1):
     min_x = 999999999999
@@ -116,7 +129,7 @@ def draw(list_of_timelines):
     draw_ax(ax[0], list_of_timelines[0], True)
     for i in xrange(1, len(list_of_timelines)):
         draw_ax(ax[i], list_of_timelines[i], False)
-    fig.set_size_inches(total_length, 1)
+    fig.set_size_inches(total_length * 4, 1)
     fig.savefig(SAVE_PDF_NAME, bbox_inches='tight')
     if platform.system() == 'Windows':
         os.system('start %s' % SAVE_PDF_NAME)

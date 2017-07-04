@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import FormatStrFormatter
 
-FRAME_DURATION = 920    #718us(data) + 192us(preamble)
+FRAME_DURATION = 920    #728us(data) + 192us(preamble)
                         #for 1000 bytes packet at 11Mbps
 GPIO_TO_DEVICE_DICT = {
     '27': 0,    #left node

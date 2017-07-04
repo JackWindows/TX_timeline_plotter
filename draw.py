@@ -25,7 +25,7 @@ def parse_data(filename):
         exit()
     timelines = [[], [], []]
     entry_regex = re.compile('^\[.*?\] \[\d+\.\d+\] GPIO: (\d{2}) falling$')
-    rest_regex = re.compile('^\[.*?\] \[ *(\d+) us\] GPIO: (\d{2}) falling$')
+    rest_regex = re.compile('^\[.*?\] (\d+):(\d{2})f$')
     entry_found = False
     cur_time = None
     with open(filename) as f:

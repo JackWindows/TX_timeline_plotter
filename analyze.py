@@ -13,6 +13,13 @@ def timelines_to_timeline(timelines):
     timeline.sort()
     return timeline
 
+def print_outcome(timelines, overlap_cnt):
+    print "transmitted packet count:"
+    for i in xrange(len(timelines)):
+        print "%-5s: %4d" % (IDX_TO_DEVICE_NAME[i], len(timelines[i]))
+    print "\noverlap count: left %d, right %d, both %d" % \
+            (overlap_cnt['left'], overlap_cnt['right'], overlap_cnt['both'])
+
 def main():
     timelines = parse_data('data.txt')
     timeline = timelines_to_timeline(timelines)
@@ -39,7 +46,7 @@ def main():
                     overlap_cnt[dev_name] += 1
                     if overlap['left'] and overlap['right']:
                         overlap_cnt['both'] += 1
-    print overlap_cnt
+    print_outcome(timelines, overlap_cnt)
 
 if __name__ == '__main__':
     main()

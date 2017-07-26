@@ -11,11 +11,12 @@ GPIO_TO_DEVICE_DICT = {
     '27': 0,    #left node
     '17': 1,    #mid node
     '22': 2,    #right node
+    '18': 3,    #unlocking signal
 }
 
-IDX_TO_DEVICE_NAME = ['left', 'mid', 'right']
-IDX_TO_COLOR = ['r', 'g', 'b']
-IDX_TO_Y_AXIS = [1, 3, 5]
+IDX_TO_DEVICE_NAME = ['left', 'mid', 'right', 'unlocking']
+IDX_TO_COLOR = ['r', 'g', 'b', 'black']
+IDX_TO_Y_AXIS = [1, 3, 5, 0]
 
 SAVE_PDF_NAME = 'TX_timeline.pdf'
 
@@ -23,7 +24,7 @@ def parse_data(filename):
     if not os.path.isfile(filename):
         print('file %s don\'t exist' % filename)
         exit()
-    timelines = [[], [], []]
+    timelines = [[], [], [], []]
     entry_regex = re.compile('^\[.*?\] \[\d+\.\d+\] GPIO: (\d{2}) falling$')
     rest_regex = re.compile('^\[.*?\] (\d+):(\d{2})f$')
     entry_found = False
@@ -56,7 +57,7 @@ def draw_ax(ax, timelines, first=True):
     ax.xaxis.grid('on')
     min_x = 999999999999    #get the smallest x axis
     max_x = 0   #get the longest x axis
-    for idx in xrange(len(timelines)):
+    for idx in xrange(3):
         name = IDX_TO_DEVICE_NAME[idx]
         color = IDX_TO_COLOR[idx]
         y = IDX_TO_Y_AXIS[idx]
@@ -67,6 +68,9 @@ def draw_ax(ax, timelines, first=True):
             ax.add_patch(p)
             min_x = min(min_x, interval[0])
             max_x = max(max_x, interval[1])
+    for interval in timelines[3]:
+        ax.plot((interval[1] / 1000.0, interval[1] / 1000.0,),
+             (0, 6,), 'black', linewidth=2)
     xlim_min, xlim_max = get_x_axis_span(timelines)
     ax.axis([xlim_min, xlim_max, 0, 6])
     x_ticks_tmp = []
@@ -86,8 +90,8 @@ def draw_ax(ax, timelines, first=True):
     ax.xaxis.set_ticklabels(x_labels, rotation=70)
     ax.spines['right'].set_visible(False)
     if first:
-        ax.yaxis.set_ticks(IDX_TO_Y_AXIS)
-        ax.yaxis.set_ticklabels(IDX_TO_DEVICE_NAME)
+        ax.yaxis.set_ticks(IDX_TO_Y_AXIS[:-1])
+        ax.yaxis.set_ticklabels(IDX_TO_DEVICE_NAME[:-1])
     else:
         ax.spines['left'].set_visible(False)
         ax.yaxis.set_ticks([])
@@ -153,7 +157,7 @@ def redcue_data(timelines, intersted='mid'):
     list_of_timelines = []
     node_idxs = [0] * len(timelines)
     for cur_intval in valid_intval:
-        tmp_timelines = [[], [], []]
+        tmp_timelines = [[], [], [], []]
         for idx in xrange(len(timelines)):
             for i in xrange(node_idxs[idx], len(timelines[idx])):
                 intval = timelines[idx][i]

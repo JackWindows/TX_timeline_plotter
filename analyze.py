@@ -39,16 +39,22 @@ def main():
             overlap['right'] = False
             for d in [-2, -1, 1, 2]:
                 idx = i + d
-                if 0 <= idx < len(timeline) and \
-                        abs(timeline[idx][0][1] - timeline[i][0][1]) \
-                        <= OVERLAP_THRESH:
-                    dev_name = timeline[idx][1]
-                    assert(dev_name != 'mid')
-                    assert(overlap[dev_name] == False)
-                    overlap[dev_name] = True
-                    overlap_cnt[dev_name] += 1
-                    if overlap['left'] and overlap['right']:
-                        overlap_cnt['both'] += 1
+                if 0 <= idx < len(timeline):
+                    finish_time_diff = abs(timeline[idx][0][1] - timeline[i][0][1])
+                    if finish_time_diff <= OVERLAP_THRESH:
+                        dev_name = timeline[idx][1]
+                        assert(dev_name != 'mid')
+                        assert(overlap[dev_name] == False)
+                        overlap[dev_name] = True
+                        overlap_cnt[dev_name] += 1
+                        if overlap['left'] and overlap['right']:
+                            overlap_cnt['both'] += 1
+                    if OVERLAP_THRESH < finish_time_diff < \
+                            FRAME_DURATION - OVERLAP_THRESH:
+                        print "Violation detected at %.2fms with %s node (%.2fms)" % \
+                            (timeline[i][0][1] / 1000.0, timeline[idx][1], \
+                            timeline[idx][0][1] / 1000.0)
+
     print_outcome(timelines, overlap_cnt)
     #now print the distribution of inter-frame spacing duration
     print ""
